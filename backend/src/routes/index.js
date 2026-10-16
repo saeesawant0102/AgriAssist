@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { createAuthRouter } from './auth.routes.js';
-import { createHealthRouter } from './health.routes.js';
+import { createCropsRouter } from './crops.routes.js';
 import { createFarmsRouter } from './farms.routes.js';
+import { createHealthRouter } from './health.routes.js';
 
 /**
  * Creates versioned API router mounted at /api/v1
@@ -19,6 +20,9 @@ export function createApiRouter(deps) {
 
   // Farms: /api/v1/farms
   router.use('/farms', createFarmsRouter(deps));
+
+  // Crops: /api/v1/crops
+  router.use('/crops', createCropsRouter(deps));
 
   return router;
 }

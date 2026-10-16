@@ -124,7 +124,7 @@
 ---
 
 ### Phase 3: Crop Management (Feature 3)
-- **Status:** Queued
+- **Status:** Completed
 - **Requirements:** `Crop.Add`, `Crop.View`, `Crop.Edit`, `Crop.Delete`, `Crop.Stage.Update`, `BR-3`, `SE-5`.
 - **Backend Scope:**
   - Migration `003_crops.sql`: `crops` table with `farm_id` FK cascade, sowing/harvest dates, `CHECK (harvest_date IS NULL OR harvest_date >= sowing_date)`.

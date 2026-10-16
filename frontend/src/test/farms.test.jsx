@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminFarms } from '../features/admin/pages/AdminFarms.jsx';
+import * as cropApi from '../features/crops/api.js';
 import * as farmApi from '../features/farms/api.js';
 import { FarmForm } from '../features/farms/components/FarmForm.jsx';
 import { FarmDetails } from '../features/farms/pages/FarmDetails.jsx';
@@ -33,6 +34,7 @@ describe('Frontend Farm Management Component Tests (Feature 2)', () => {
       user_type: 'farmer',
       farmer_id: 1,
     };
+    vi.spyOn(cropApi, 'getCropsByFarmApi').mockResolvedValue([]);
   });
 
   it('Farm.Validate: displays validation errors for missing and invalid fields', async () => {

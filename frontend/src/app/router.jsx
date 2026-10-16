@@ -8,6 +8,8 @@ import { ForgotPassword } from '../features/auth/pages/ForgotPassword.jsx';
 import { Login } from '../features/auth/pages/Login.jsx';
 import { Profile } from '../features/auth/pages/Profile.jsx';
 import { Register } from '../features/auth/pages/Register.jsx';
+import { CropDetails } from '../features/crops/pages/CropDetails.jsx';
+import { CropEdit } from '../features/crops/pages/CropEdit.jsx';
 import { FarmCreate } from '../features/farms/pages/FarmCreate.jsx';
 import { FarmDetails } from '../features/farms/pages/FarmDetails.jsx';
 import { FarmEdit } from '../features/farms/pages/FarmEdit.jsx';
@@ -23,14 +25,14 @@ function FarmerDashboardPlaceholder() {
             Farmer Dashboard
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Welcome to AgriAssist. Authentication &amp; Farm Management active.
+            Welcome to AgriAssist. Authentication, Farm &amp; Crop Management active.
           </p>
         </div>
       </div>
 
       <Card title="System Readiness">
         <div className="p-4 bg-emerald-50 text-emerald-800 rounded-lg text-sm border border-emerald-200">
-          Farmer authenticated successfully. Farm management active. Crop, weather, and advisory features will be enabled in subsequent phases.
+          Farmer authenticated successfully. Farm and crop management active. Weather, advisory, and irrigation features will be enabled in subsequent phases.
         </div>
       </Card>
     </div>
@@ -46,14 +48,14 @@ function AdminDashboardPlaceholder() {
             Administrator Dashboard
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            System administration &amp; farm management active.
+            System administration, farm &amp; crop management active.
           </p>
         </div>
       </div>
 
       <Card title="System Overview">
         <div className="p-4 bg-purple-50 text-purple-800 rounded-lg text-sm border border-purple-200">
-          Administrator authenticated successfully. System statistics and farm parcels management ready.
+          Administrator authenticated successfully. System statistics, farm parcels, and crops management ready.
         </div>
       </Card>
     </div>
@@ -82,6 +84,8 @@ export const router = createBrowserRouter([
       { path: 'farms/new', element: <FarmCreate /> },
       { path: 'farms/:farmId', element: <FarmDetails /> },
       { path: 'farms/:farmId/edit', element: <FarmEdit /> },
+      { path: 'crops/:cropId', element: <CropDetails /> },
+      { path: 'crops/:cropId/edit', element: <CropEdit /> },
       { path: 'weather', element: <FarmerDashboardPlaceholder /> },
       { path: 'advisory', element: <FarmerDashboardPlaceholder /> },
       { path: 'irrigation', element: <FarmerDashboardPlaceholder /> },
@@ -103,6 +107,7 @@ export const router = createBrowserRouter([
       { path: 'users', element: <AdminDashboardPlaceholder /> },
       { path: 'farms', element: <AdminFarms /> },
       { path: 'farms/:farmId', element: <FarmDetails /> },
+      { path: 'crops/:cropId', element: <CropDetails /> },
       { path: 'reports', element: <AdminDashboardPlaceholder /> },
     ],
   },
