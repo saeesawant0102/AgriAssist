@@ -10,19 +10,20 @@ import { createFixedClock } from './fixedClock.js';
  * Runs all migrations before resolving.
  * @returns {Promise<{ app: import('express').Application, db: Database, authGateway: FakeAuthGateway, weatherService: FakeWeatherService, clock: import('../../src/utils/clock.js').FixedClock }>}
  */
-export async function createTestApp() {
+export async function createTestApp(extraDeps = {}) {
   const db = await Database.open(':memory:');
   await migrate(db);
 
-  const authGateway = new FakeAuthGateway();
-  const weatherService = new FakeWeatherService();
-  const clock = createFixedClock();
+  const authGateway = extraDeps.authGateway || new FakeAuthGateway();
+  const weatherService = extraDeps.weatherService || new FakeWeatherService();
+  const clock = extraDeps.clock || createFixedClock();
 
   const app = createApp({
     db,
     authGateway,
     weatherService,
     clock,
+    ...extraDeps,
   });
 
   return {

@@ -100,7 +100,7 @@
 ---
 
 ### Phase 2: Farm Management (Feature 2)
-- **Status:** Queued
+- **Status:** Completed
 - **Requirements:** `Farm.Add`, `Farm.View`, `Farm.Edit`, `Farm.Delete`, `Farm.Validate`, `BR-1`, `BR-2`, `SE-5`, `D5`, `D6`, `D21`.
 - **Backend Scope:**
   - Migration `002_farms.sql`: `farms` table with `farm_id`, `farmer_id` FK cascade, coordinates, and DB triggers (`trg_farms_after_insert`, `trg_farms_after_delete`) automatically updating `farmers.farm_count`.
