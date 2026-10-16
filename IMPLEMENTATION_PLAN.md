@@ -72,7 +72,7 @@
 ---
 
 ### Phase 1: Authentication and Profile Management (Feature 1)
-- **Status:** Queued
+- **Status:** COMPLETED (Verified with 60 passing automated tests, clean linting, and role enforcement)
 - **Requirements:** `Auth.Register`, `Auth.Login`, `Auth.Logout`, `Auth.Profile.View`, `Auth.Profile.Update`, `SE-1`, `SE-2`, `SE-3`, `CO-4`, Forgot/Change Password.
 - **Backend Scope:**
   - Migration `001_users.sql`: `users`, `farmers`, `administrators` with case-insensitive unique email, `firebase_uid`, `user_type`, `status`. No local passwords.

@@ -1,4 +1,5 @@
 import { AuthGateway } from '../../src/auth/AuthGateway.js';
+import { AppError } from '../../src/errors/AppError.js';
 
 export class FakeAuthGateway extends AuthGateway {
   constructor() {
@@ -13,15 +14,11 @@ export class FakeAuthGateway extends AuthGateway {
     const user = this.users.get(uid);
 
     if (!user) {
-      const err = new Error('Firebase token invalid');
-      err.code = 'auth/argument-error';
-      throw err;
+      throw AppError.unauthenticated('Firebase token invalid');
     }
 
     if (checkRevoked && user.tokensRevokedAt && Date.now() < user.tokensRevokedAt) {
-      const err = new Error('Firebase token revoked');
-      err.code = 'auth/id-token-revoked';
-      throw err;
+      throw AppError.unauthenticated('Firebase token revoked');
     }
 
     return {
@@ -33,9 +30,7 @@ export class FakeAuthGateway extends AuthGateway {
   async createUser({ email, password: _password, displayName: _displayName }) {
     for (const u of this.users.values()) {
       if (u.email.toLowerCase() === email.toLowerCase()) {
-        const err = new Error('The email address is already in use by another account.');
-        err.code = 'auth/email-already-exists';
-        throw err;
+        throw AppError.emailAlreadyExists();
       }
     }
 
