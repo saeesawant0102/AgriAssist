@@ -8,6 +8,7 @@ import { CropService } from '../services/cropService.js';
 import { FarmService } from '../services/farmService.js';
 import { addCropSchema } from '../validators/cropValidators.js';
 import { addFarmSchema, updateFarmSchema } from '../validators/farmValidators.js';
+import { createWeatherRouter } from './weather.routes.js';
 
 /**
  * Creates Farm router mounted at /api/v1/farms
@@ -84,5 +85,9 @@ export function createFarmsRouter(deps) {
     cropController.getCropsByFarm
   );
 
+  // Weather routes: /api/v1/farms/:farmId/weather/*
+  router.use('/:farmId/weather', createWeatherRouter(deps));
+
   return router;
 }
+

@@ -14,6 +14,8 @@ import { FarmCreate } from '../features/farms/pages/FarmCreate.jsx';
 import { FarmDetails } from '../features/farms/pages/FarmDetails.jsx';
 import { FarmEdit } from '../features/farms/pages/FarmEdit.jsx';
 import { FarmList } from '../features/farms/pages/FarmList.jsx';
+import { WeatherDashboard } from '../features/weather/pages/WeatherDashboard.jsx';
+import { CropAdvisory } from '../features/advisory/pages/CropAdvisory.jsx';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
 
 function FarmerDashboardPlaceholder() {
@@ -86,8 +88,8 @@ export const router = createBrowserRouter([
       { path: 'farms/:farmId/edit', element: <FarmEdit /> },
       { path: 'crops/:cropId', element: <CropDetails /> },
       { path: 'crops/:cropId/edit', element: <CropEdit /> },
-      { path: 'weather', element: <FarmerDashboardPlaceholder /> },
-      { path: 'advisory', element: <FarmerDashboardPlaceholder /> },
+      { path: 'weather', element: <WeatherDashboard /> },
+      { path: 'advisory', element: <CropAdvisory /> },
       { path: 'irrigation', element: <FarmerDashboardPlaceholder /> },
       { path: 'finance', element: <FarmerDashboardPlaceholder /> },
       { path: 'reports', element: <FarmerDashboardPlaceholder /> },

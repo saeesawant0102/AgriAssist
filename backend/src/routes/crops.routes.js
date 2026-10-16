@@ -5,6 +5,7 @@ import { requireRole } from '../middleware/authorize.js';
 import { validate } from '../middleware/validate.js';
 import { CropService } from '../services/cropService.js';
 import { updateCropSchema, updateStageSchema } from '../validators/cropValidators.js';
+import { createAdvisoryRouter } from './advisory.routes.js';
 
 /**
  * Creates Crop router mounted at /api/v1/crops
@@ -54,5 +55,9 @@ export function createCropsRouter(deps) {
     controller.deleteCrop
   );
 
+  // Advisory routes: /api/v1/crops/:cropId/advisories/*
+  router.use('/:cropId/advisories', createAdvisoryRouter(deps));
+
   return router;
 }
+

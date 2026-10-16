@@ -149,7 +149,7 @@
 ---
 
 ### Phase 4: Weather Dashboard, Crop Advisory and Alerts (Feature 4)
-- **Status:** Queued
+- **Status:** Completed
 - **Requirements:** `Weather.Fetch`, `Weather.Display`, `Advisory.Generate`, `Advisory.Display`, `BR-4`, `PE-3`, `DE-1`, `OE-5`, `SI-2`, Weather Alert Notification.
 - **Backend Scope:**
   - Migration `004_weather_advisory.sql`: `weather_data` (append-only), `crop_advisories`, `advisory_weather` junction.
