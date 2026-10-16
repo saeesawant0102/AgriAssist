@@ -1,0 +1,13 @@
+{
+  "name": "agriassist",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"backend,frontend\" -c \"blue,green\" \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "lint": "npm --prefix backend run lint && npm --prefix frontend run lint",
+    "test": "npm --prefix backend test && npm --prefix frontend test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
