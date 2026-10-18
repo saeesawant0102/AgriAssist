@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate.js';
 import { CropService } from '../services/cropService.js';
 import { updateCropSchema, updateStageSchema } from '../validators/cropValidators.js';
 import { createAdvisoryRouter } from './advisory.routes.js';
+import { createCropIrrigationRouter } from './irrigation.routes.js';
 
 /**
  * Creates Crop router mounted at /api/v1/crops
@@ -57,6 +58,9 @@ export function createCropsRouter(deps) {
 
   // Advisory routes: /api/v1/crops/:cropId/advisories/*
   router.use('/:cropId/advisories', createAdvisoryRouter(deps));
+
+  // Irrigation routes: /api/v1/crops/:cropId/irrigation-schedules/*
+  router.use('/:cropId/irrigation-schedules', createCropIrrigationRouter(deps));
 
   return router;
 }

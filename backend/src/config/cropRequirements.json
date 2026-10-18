@@ -1,0 +1,6 @@
+{
+  "default": {
+    "interval_days": 5,
+    "water_mm": 25
+  }
+}

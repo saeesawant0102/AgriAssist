@@ -16,6 +16,7 @@ import { FarmEdit } from '../features/farms/pages/FarmEdit.jsx';
 import { FarmList } from '../features/farms/pages/FarmList.jsx';
 import { WeatherDashboard } from '../features/weather/pages/WeatherDashboard.jsx';
 import { CropAdvisory } from '../features/advisory/pages/CropAdvisory.jsx';
+import { IrrigationScheduling } from '../features/irrigation/pages/IrrigationScheduling.jsx';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
 
 function FarmerDashboardPlaceholder() {
@@ -90,7 +91,7 @@ export const router = createBrowserRouter([
       { path: 'crops/:cropId/edit', element: <CropEdit /> },
       { path: 'weather', element: <WeatherDashboard /> },
       { path: 'advisory', element: <CropAdvisory /> },
-      { path: 'irrigation', element: <FarmerDashboardPlaceholder /> },
+      { path: 'irrigation', element: <IrrigationScheduling /> },
       { path: 'finance', element: <FarmerDashboardPlaceholder /> },
       { path: 'reports', element: <FarmerDashboardPlaceholder /> },
     ],

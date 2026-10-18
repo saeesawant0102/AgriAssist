@@ -3,6 +3,7 @@ import { createAuthRouter } from './auth.routes.js';
 import { createCropsRouter } from './crops.routes.js';
 import { createFarmsRouter } from './farms.routes.js';
 import { createHealthRouter } from './health.routes.js';
+import { createIrrigationScheduleRouter } from './irrigation.routes.js';
 
 /**
  * Creates versioned API router mounted at /api/v1
@@ -23,6 +24,9 @@ export function createApiRouter(deps) {
 
   // Crops: /api/v1/crops
   router.use('/crops', createCropsRouter(deps));
+
+  // Irrigation Schedules: /api/v1/irrigation-schedules
+  router.use('/irrigation-schedules', createIrrigationScheduleRouter(deps));
 
   return router;
 }

@@ -2,6 +2,7 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { createContainer } from './container.js';
 import { migrate } from './db/migrate.js';
+import { startScheduler, stopScheduler } from './jobs/scheduler.js';
 
 async function bootstrap() {
   try {
@@ -20,11 +21,14 @@ async function bootstrap() {
 
     const server = app.listen(env.PORT, () => {
       console.log(`[Server] AgriAssist backend listening on port ${env.PORT}`);
+      // Register scheduled jobs (Requirement: D18, Section 11)
+      startScheduler(deps);
     });
 
     // Graceful shutdown
     const shutdown = async (signal) => {
       console.log(`[Server] Received ${signal}, closing server...`);
+      stopScheduler();
       server.close(async () => {
         try {
           await deps.db.close();
