@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog.jsx';
 import { Input } from '../components/ui/Input.jsx';
 import { Modal } from '../components/ui/Modal.jsx';
 import { Select } from '../components/ui/Select.jsx';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table.jsx';
 
 describe('UI Primitives', () => {
   it('UI.Button: handles click and loading state', () => {
@@ -103,5 +104,37 @@ describe('UI Primitives', () => {
   it('UI.Badge: renders badge with custom variant', () => {
     render(<Badge variant="success">Active</Badge>);
     expect(screen.getByText('Active')).toBeInTheDocument();
+  });
+
+  it('UI.Table: renders data-driven table with headers and rows', () => {
+    const columns = [
+      { key: 'name', header: 'Crop Name' },
+      { key: 'area', header: 'Area' },
+    ];
+    const data = [{ id: 1, name: 'Wheat', area: '10 ha' }];
+
+    render(<Table columns={columns} data={data} />);
+    expect(screen.getByText('Crop Name')).toBeInTheDocument();
+    expect(screen.getByText('Wheat')).toBeInTheDocument();
+  });
+
+  it('UI.Table: renders compound composition components', () => {
+    render(
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Header Item</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>Cell Content</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    );
+
+    expect(screen.getByText('Header Item')).toBeInTheDocument();
+    expect(screen.getByText('Cell Content')).toBeInTheDocument();
   });
 });
