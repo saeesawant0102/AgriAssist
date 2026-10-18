@@ -297,10 +297,11 @@
 
 ### 5. Actual Test Results
 - **Backend Tests:** 20 test files, 181 passed, 0 failed.
-- **Frontend Tests:** 11 test files, 64 passed, 0 failed.
-- **Total Passing Automated Tests:** 245 passed.
+- **Frontend Tests:** 11 test files, 66 passed, 0 failed.
+- **Total Passing Automated Tests:** 247 passed.
 - **Lint:** 0 errors, 0 warnings.
 - **Load Test:** Passed (PE-1, PE-2, PE-3, PE-4 satisfied).
+- **Frontend Build (`vite build`):** Clean production bundle generated (0 errors).
 
 ### 6. Acceptance Criteria Satisfaction (Section 18)
 1. **Admin Seed & Auth:** Admin seed CLI script verified; farmer registration, login, logout, profile update, password reset tested.
@@ -313,4 +314,7 @@
 8. **Admin Operations:** System statistics, keyset pagination, farmer enable/disable, user deletion with cascades, admin farms management, all-system reports.
 9. **Security & Isolation (SE-5):** Cross-owner resource access denied with 403 on all entity types; admin prevented from modifying self/admins; farmer denied from admin endpoints.
 10. **Backup & Recovery:** Verified automated VACUUM INTO snapshots, retention pruning, restore CLI, and PRAGMA integrity checks.
+
+### 7. Post-Handoff Fixes
+- Exported compound components `TableHeader`, `TableBody`, `TableRow`, `TableHead`, and `TableCell` alongside data-driven `Table` in `frontend/src/components/ui/Table.jsx` to resolve Vite dependency scan and production build failure in `RecordTable.jsx` and `Profitability.jsx`. Added unit tests in `frontend/src/test/ui.test.jsx`.
 
