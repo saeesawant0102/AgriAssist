@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { env } from './config/env.js';
+import { AppError } from './errors/AppError.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { createHealthRouter } from './routes/health.routes.js';
 import { createApiRouter } from './routes/index.js';
@@ -35,7 +36,7 @@ export function createApp(deps = {}) {
         if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
           callback(null, true);
         } else {
-          callback(new Error('Not allowed by CORS'));
+          callback(new AppError(403, 'CORS_ERROR', `Origin ${origin} not allowed by CORS`));
         }
       },
       credentials: true,

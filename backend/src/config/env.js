@@ -8,7 +8,11 @@ const envSchema = z.object({
   DATABASE_PATH: z.string().default('./data/agriassist.db'),
   GOOGLE_APPLICATION_CREDENTIALS: z.string().default('./secrets/service-account.json'),
   FIREBASE_PROJECT_ID: z.string().default('demo-agriassist'),
-  ALLOWED_ORIGINS: z.string().default('http://localhost:5173'),
+  ALLOWED_ORIGINS: z
+    .string()
+    .default(
+      'http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174'
+    ),
   OPEN_METEO_BASE_URL: z.string().default('https://api.open-meteo.com'),
   OPEN_METEO_GEOCODING_URL: z.string().default('https://geocoding-api.open-meteo.com'),
   WEATHER_TIMEOUT_MS: z.coerce.number().default(5000),

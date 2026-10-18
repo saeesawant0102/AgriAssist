@@ -2,7 +2,7 @@ import { FirebaseAuthGateway } from '../src/auth/FirebaseAuthGateway.js';
 import { env } from '../src/config/env.js';
 import { Database } from '../src/db/connection.js';
 import { migrate } from '../src/db/migrate.js';
-import * as userRepository from '../repositories/userRepository.js';
+import * as userRepository from '../src/repositories/userRepository.js';
 
 async function seedAdmin() {
   const args = process.argv.slice(2);

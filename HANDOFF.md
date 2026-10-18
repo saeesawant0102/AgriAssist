@@ -329,3 +329,24 @@
     - Real Firebase: place service-account JSON at `backend/secrets/service-account.json` and set `GOOGLE_APPLICATION_CREDENTIALS=./secrets/service-account.json` in `backend/.env`.
     - Firebase Emulator: set `FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099` in `backend/.env` and real API keys in `frontend/.env`.
     - Local dev only: no action required; local fallback mode is fully functional.
+
+- **Admin Login 500 / CORS Error Diagnosis & Resolution (2026-10-18)**
+  - **Issue Reported:** Attempting to sign in at `http://localhost:5173/login` using seeded admin credentials (`admin@agriassist.local` / `AdminSecurePass!1`) rendered "Internal server error" in the UI.
+  - **Diagnostic Findings & Root Causes:**
+    1. **Admin Account Status:** The initial admin account had not been seeded in the active SQLite database file due to an import typo in `backend/scripts/seedAdmin.js` (`../repositories/userRepository.js` instead of `../src/repositories/userRepository.js`), which prevented the CLI script from completing. Once fixed, `admin@agriassist.local` (`user_type=administrator`, `role=system_admin`, `status=active`) was seeded in the database.
+    2. **CORS Origin Rejection & 500 Conversion:**
+       - Vite development server automatically fell back to port `5174` whenever port `5173` had an existing listener.
+       - In `backend/src/config/env.js`, `ALLOWED_ORIGINS` strictly defaulted to only `http://localhost:5173`. When requests arrived from `http://localhost:5174` or `http://127.0.0.1:*`, Express `cors` middleware invoked `callback(new Error('Not allowed by CORS'))`.
+       - Because `Error('Not allowed by CORS')` was a generic `Error` and not an instance of `AppError`, `backend/src/middleware/errorHandler.js` caught it as an unhandled exception and converted it into HTTP 500 `{ error: { code: 'INTERNAL', message: 'Internal server error' } }`, which Axios propagated to `Login.jsx` as `"Internal server error"`.
+  - **Fixes Applied:**
+    1. `backend/scripts/seedAdmin.js`: Corrected import path to `../src/repositories/userRepository.js`.
+    2. `backend/src/config/env.js` & `backend/.env.example`: Expanded default `ALLOWED_ORIGINS` to `http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174`.
+    3. `backend/src/app.js`: Updated CORS rejection handler to pass `new AppError(403, 'CORS_ERROR', ...)` instead of a raw generic `Error`, ensuring CORS violations return clean HTTP 403 responses without triggering 500 internal server error.
+  - **Verification:**
+    - `POST /api/v1/auth/login` with `Origin: http://localhost:5173`: HTTP 200 OK with administrator profile payload (`user_id: 4`, `user_type: "administrator"`, `role: "system_admin"`).
+    - `POST /api/v1/auth/login` with `Origin: http://localhost:5174`: HTTP 200 OK.
+    - `POST /api/v1/auth/login` with `Origin: http://127.0.0.1:5173`: HTTP 200 OK.
+    - `POST /api/v1/auth/login` with unauthorized origin `http://evil.com`: HTTP 403 Forbidden with `{ "error": { "code": "CORS_ERROR", ... } }`.
+    - `GET /api/v1/admin/stats` with administrator token: HTTP 200 OK with statistics (`farmer_count`, `farm_count`, `crop_count`, `financial_record_count`).
+    - Full automated test suites: Backend 20/20 test files (181 tests passed), Frontend 11/11 test files (66 tests passed).
+
