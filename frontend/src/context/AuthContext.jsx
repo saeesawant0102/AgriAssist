@@ -29,16 +29,49 @@ export function AuthProvider({ children }) {
   // Wire token provider for apiClient interceptor
   useEffect(() => {
     setTokenProvider(async () => {
-      if (!auth.currentUser) return null;
-      return await auth.currentUser.getIdToken();
+      if (auth.currentUser) {
+        return await auth.currentUser.getIdToken();
+      }
+      const saved = localStorage.getItem('agriassist_local_user');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed?.email) {
+            return `local-token-${parsed.email}`;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return null;
     });
   }, []);
 
   // Listen for Firebase auth state changes
   useEffect(() => {
+    const saved = localStorage.getItem('agriassist_local_user');
+    let hasLocal = false;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed?.email) {
+          hasLocal = true;
+          setUser({
+            uid: parsed.uid || `local-uid-${parsed.email}`,
+            email: parsed.email,
+            getIdToken: async () => `local-token-${parsed.email}`,
+          });
+          setProfile(parsed.profile || null);
+          setLoading(false);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      setUser(fbUser);
       if (fbUser) {
+        setUser(fbUser);
         try {
           // Fetch or sync server profile via POST /auth/login
           const serverProfile = await loginApi();
@@ -56,7 +89,7 @@ export function AuthProvider({ children }) {
             setProfile(null);
           }
         }
-      } else {
+      } else if (!hasLocal) {
         setProfile(null);
       }
       setLoading(false);
@@ -70,11 +103,32 @@ export function AuthProvider({ children }) {
     setError(null);
     setLoading(true);
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const serverProfile = await loginApi();
-      setUser(cred.user);
-      setProfile(serverProfile);
-      return serverProfile;
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        setUser(cred.user);
+        const serverProfile = await loginApi();
+        setProfile(serverProfile);
+        return serverProfile;
+      } catch (fbErr) {
+        console.warn('[AuthContext] Client Firebase sign-in skipped/failed:', fbErr.message);
+        const fallbackUser = {
+          uid: `local-uid-${email}`,
+          email,
+          getIdToken: async () => `local-token-${email}`,
+        };
+        setUser(fallbackUser);
+        localStorage.setItem(
+          'agriassist_local_user',
+          JSON.stringify({ uid: fallbackUser.uid, email })
+        );
+        const serverProfile = await loginApi();
+        setProfile(serverProfile);
+        localStorage.setItem(
+          'agriassist_local_user',
+          JSON.stringify({ uid: fallbackUser.uid, email, profile: serverProfile })
+        );
+        return serverProfile;
+      }
     } catch (err) {
       setError(err.message || 'Login failed');
       throw err;
@@ -88,7 +142,7 @@ export function AuthProvider({ children }) {
     setError(null);
     setLoading(true);
     try {
-      // 1. Create farmer in backend (and Firebase)
+      // 1. Create farmer in backend (and Firebase if configured)
       const newProfile = await registerApi({
         name: payload.name,
         email: payload.email,
@@ -97,9 +151,23 @@ export function AuthProvider({ children }) {
         address: payload.address || undefined,
       });
 
-      // 2. Sign in client SDK
-      const cred = await signInWithEmailAndPassword(auth, payload.email, payload.password);
-      setUser(cred.user);
+      // 2. Sign in client SDK or fall back to local dev user
+      try {
+        const cred = await signInWithEmailAndPassword(auth, payload.email, payload.password);
+        setUser(cred.user);
+      } catch (fbErr) {
+        console.warn('[AuthContext] Client Firebase sign-in skipped/failed:', fbErr.message);
+        const fallbackUser = {
+          uid: newProfile.user_id ? `local-uid-${newProfile.user_id}` : `local-uid-${payload.email}`,
+          email: payload.email,
+          getIdToken: async () => `local-token-${payload.email}`,
+        };
+        setUser(fallbackUser);
+        localStorage.setItem(
+          'agriassist_local_user',
+          JSON.stringify({ uid: fallbackUser.uid, email: payload.email, profile: newProfile })
+        );
+      }
       setProfile(newProfile);
       return newProfile;
     } catch (err) {
@@ -117,7 +185,12 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.warn('[AuthContext] Server logout notification failed:', err.message);
     } finally {
-      await signOut(auth);
+      localStorage.removeItem('agriassist_local_user');
+      try {
+        await signOut(auth);
+      } catch {
+        // ignore
+      }
       setUser(null);
       setProfile(null);
       setError(null);

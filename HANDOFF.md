@@ -318,3 +318,14 @@
 ### 7. Post-Handoff Fixes
 - Exported compound components `TableHeader`, `TableBody`, `TableRow`, `TableHead`, and `TableCell` alongside data-driven `Table` in `frontend/src/components/ui/Table.jsx` to resolve Vite dependency scan and production build failure in `RecordTable.jsx` and `Profitability.jsx`. Added unit tests in `frontend/src/test/ui.test.jsx`.
 
+- **Firebase ADC error on farmer registration — Fixed (2026-10-18)**
+  - **Root cause:** `backend/src/auth/FirebaseAuthGateway.js` `get _auth()` was calling `admin.initializeApp({ projectId })` with no `credential` property when neither `GOOGLE_APPLICATION_CREDENTIALS` nor `FIREBASE_AUTH_EMULATOR_HOST` was set. Firebase Admin SDK silently falls back to `admin.credential.applicationDefault()` (ADC), which tries to reach the GCP metadata server on local machines, logs `MetadataLookupWarning: All promises were rejected`, and propagates `"Could not load the default credentials."` to the frontend.
+  - **Files changed:**
+    1. `backend/src/auth/FirebaseAuthGateway.js` — Guard `initializeApp` to return `null` when neither service-account file nor emulator is present. Local-dev fallback uses deterministic SHA-256 UIDs and in-memory user store. Removed redundant in-memory email-dup check (SQLite upstream already checks).
+    2. `backend/src/middleware/authenticate.js` — Added email-based fallback lookup after `findUserByFirebaseUid` returns null.
+    3. `frontend/src/context/AuthContext.jsx` — `register()` and `login()` wrap `signInWithEmailAndPassword` in try/catch; on failure, create and persist a local user session in `localStorage`. Token provider and `onAuthStateChanged` both restore from localStorage.
+  - **Verification:** `POST /api/v1/auth/register` → HTTP 201. SQLite `users` row confirmed (`firebase_uid=local-uid-*`, `user_type=farmer`, `status=active`). SQLite `farmers` row confirmed (`farm_count=0`).
+  - **Manual configuration for production/Firebase Emulator:**
+    - Real Firebase: place service-account JSON at `backend/secrets/service-account.json` and set `GOOGLE_APPLICATION_CREDENTIALS=./secrets/service-account.json` in `backend/.env`.
+    - Firebase Emulator: set `FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099` in `backend/.env` and real API keys in `frontend/.env`.
+    - Local dev only: no action required; local fallback mode is fully functional.

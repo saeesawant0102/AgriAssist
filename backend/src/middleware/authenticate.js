@@ -34,8 +34,11 @@ export function createAuthenticateMiddleware(db, authGateway) {
         throw AppError.unauthenticated(tokenErr.message || 'Invalid authentication token');
       }
 
-      // 2. Lookup local user profile by firebase_uid
-      const user = await userRepository.findUserByFirebaseUid(db, decoded.uid);
+      // 2. Lookup local user profile by firebase_uid (with fallback to email)
+      let user = await userRepository.findUserByFirebaseUid(db, decoded.uid);
+      if (!user && decoded.email) {
+        user = await userRepository.findUserByEmail(db, decoded.email);
+      }
       if (!user) {
         throw AppError.forbidden('User profile not found in local system', 'PROFILE_NOT_FOUND');
       }
