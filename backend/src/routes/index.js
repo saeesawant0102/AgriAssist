@@ -1,10 +1,12 @@
 import { Router } from 'express';
+import { createAdminRouter } from './admin.routes.js';
 import { createAuthRouter } from './auth.routes.js';
 import { createCropsRouter } from './crops.routes.js';
+import { createDashboardRouter, createReportsRouter } from './dashboard.routes.js';
 import { createFarmsRouter } from './farms.routes.js';
+import { createFinancialRecordRouter } from './finance.routes.js';
 import { createHealthRouter } from './health.routes.js';
 import { createIrrigationScheduleRouter } from './irrigation.routes.js';
-import { createFinancialRecordRouter } from './finance.routes.js';
 
 /**
  * Creates versioned API router mounted at /api/v1
@@ -31,6 +33,15 @@ export function createApiRouter(deps) {
 
   // Financial Records: /api/v1/financial-records
   router.use('/financial-records', createFinancialRecordRouter(deps));
+
+  // Dashboard: /api/v1/dashboard (Farmer)
+  router.use('/dashboard', createDashboardRouter(deps));
+
+  // Reports: /api/v1/reports (Farmer)
+  router.use('/reports', createReportsRouter(deps));
+
+  // Administration: /api/v1/admin (Administrator)
+  router.use('/admin', createAdminRouter(deps));
 
   return router;
 }

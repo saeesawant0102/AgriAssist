@@ -144,3 +144,47 @@ export async function deleteUserById(exec, user_id) {
   const result = await exec.run(`DELETE FROM users WHERE user_id = ?`, [user_id]);
   return result.changes > 0;
 }
+
+// Requirement: D19, Keyset pagination for listing farmer accounts
+export async function listFarmerUsers(exec, { status = null, limit = 20, cursor = null } = {}) {
+  const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
+  const conditions = ["u.user_type = 'farmer'"];
+  const params = [];
+
+  if (status) {
+    conditions.push('u.status = ?');
+    params.push(status);
+  }
+
+  if (cursor !== null && cursor !== undefined && cursor !== '') {
+    conditions.push('u.user_id < ?');
+    params.push(Number(cursor));
+  }
+
+  params.push(safeLimit + 1);
+
+  const sql = `
+    SELECT u.*, f.farmer_id, f.farm_count
+    FROM users u
+    INNER JOIN farmers f ON u.user_id = f.user_id
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY u.user_id DESC
+    LIMIT ?
+  `;
+
+  const rows = await exec.all(sql, params);
+  const hasMore = rows.length > safeLimit;
+  const resultRows = hasMore ? rows.slice(0, safeLimit) : rows;
+  const nextCursor = hasMore && resultRows.length > 0 ? resultRows[resultRows.length - 1].user_id : null;
+
+  return {
+    users: resultRows.map((r) => mapUserRow(r)),
+    next_cursor: nextCursor,
+  };
+}
+
+// Requirement: D8, Administrator.manage_system
+export async function countFarmers(exec) {
+  const row = await exec.get(`SELECT COUNT(*) as count FROM users WHERE user_type = 'farmer'`);
+  return row ? Number(row.count) : 0;
+}

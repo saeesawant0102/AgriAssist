@@ -91,3 +91,21 @@ export async function findFarmOwnerByFarmId(exec, farm_id) {
     [farm_id]
   );
 }
+
+// Requirement: D8, Administrator.manage_system
+export async function countCrops(exec) {
+  const row = await exec.get(`SELECT COUNT(*) as count FROM crops`);
+  return row ? Number(row.count) : 0;
+}
+
+// Requirement: D10, Farmer.view_dashboard
+export async function countCropsByFarmerId(exec, farmer_id) {
+  const row = await exec.get(
+    `SELECT COUNT(c.crop_id) as count
+     FROM crops c
+     INNER JOIN farms f ON c.farm_id = f.farm_id
+     WHERE f.farmer_id = ?`,
+    [farmer_id]
+  );
+  return row ? Number(row.count) : 0;
+}

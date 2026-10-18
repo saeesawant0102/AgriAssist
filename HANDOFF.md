@@ -130,3 +130,105 @@
 ### 16. Next Phase and Prerequisites
 - **Next Phase:** Phase 6 — Expense, Income, Profitability and Export.
 - **Prerequisites:** Schema migration `006_finance.sql`, financial domain classes, transactions for parent-child writes, profitability calculations, CSV/PDF export, full test suite.
+
+---
+
+## Phase 6: Expense, Income, Profitability and Export
+
+### 1. Phase Completed
+- **Phase Name:** Phase 6 — Expense, Income and Profitability (Feature 6)
+- **Status:** Completed and Verified.
+- **Commit:** `5bad38c` (`phase-6: Expense, income and profitability`)
+
+### 2. Requirements Implemented
+- `Expense.Add`: Records expense entries, creates parent `financial_records` and child `expenses` in one transaction.
+- `Income.Add`: Records income entries, creates parent `financial_records` and child `incomes` in one transaction.
+- `Expense.View`: Lists financial records filtered by type, date range, sorted by date DESC.
+- `Profit.Calculate`: Calculates profitability for a given date range or all-time, inserting a `profitability` record.
+- `Profit.Report`: Retrieves profitability calculation history for a farm.
+- `BR-6`: Net profit equals total income minus total expense. Handles operating losses correctly.
+- `Export Report` (D13): `GET /farms/:farmId/reports/financial` returns structured JSON; frontend generates CSV and PDF (via jsPDF and autotable).
+
+### 3. Files Created or Modified
+- **Backend:**
+  - `backend/src/db/migrations/006_finance.sql`
+  - `backend/src/models/FinancialRecord.js`, `Expense.js`, `Income.js`, `Profitability.js`
+  - `backend/src/repositories/financialRepository.js`, `profitabilityRepository.js`
+  - `backend/src/services/financialService.js`, `profitabilityService.js`, `reportService.js`
+  - `backend/src/controllers/financeController.js`
+  - `backend/src/routes/finance.routes.js`
+  - `backend/src/validators/financeValidators.js`
+  - `backend/test/unit/finance.test.js`
+  - `backend/test/integration/finance.test.js`
+- **Frontend:**
+  - `frontend/src/features/finance/api.js`
+  - `frontend/src/features/finance/components/` (RecordForm, RecordTable, SummaryCards, ExportButtons)
+  - `frontend/src/features/finance/pages/Finance.jsx`, `Profitability.jsx`
+  - `frontend/src/utils/exportCsv.js`, `exportPdf.js`
+  - `frontend/src/test/finance.test.jsx`
+
+---
+
+## Phase 7: Dashboards, Reports and Administration
+
+### 1. Phase Completed
+- **Phase Name:** Phase 7 — Dashboards, Reports and Administration (Feature 7)
+- **Status:** Completed and Verified.
+- **Commit:** Target `phase-7: Dashboards, reports and administration`
+
+### 2. Requirements Implemented
+- `Farmer.view_dashboard` (D10): Endpoint `GET /api/v1/dashboard` returning farm count, crop count, latest advisory across all crops, next upcoming non-skipped irrigation date, and overall net profit.
+- `Farmer.view_reports` (D11): Endpoint `GET /api/v1/reports/profitability` returning overall profitability rows for each farmer-owned farm.
+- `Administrator.manage_system` (D8): Endpoint `GET /api/v1/admin/stats` returning counts of farmers, farms, crops, and financial records.
+- `Administrator.view_all_reports` (D9): Endpoint `GET /api/v1/admin/reports` returning overall profitability across all farms in the system with farm and farmer names.
+- `Administrator.manage_users` (D7, D19, Section 12.10):
+  - `GET /api/v1/admin/users`: Keyset pagination by integer user_id (`limit` default 20, max 100, `cursor` = last user_id seen), filtered by status (`active` | `disabled`), newest first.
+  - `GET /api/v1/admin/users/:userId`: View farmer account profile (never exposes `firebase_uid`).
+  - `PUT /api/v1/admin/users/:userId`: Update farmer profile (name, phone, address).
+  - `PATCH /api/v1/admin/users/:userId/status`: Disables/enables farmer; disables in Firebase Auth, revokes refresh tokens, and updates SQLite status. Disabled farmers blocked with 401/403.
+  - `DELETE /api/v1/admin/users/:userId`: Safe order: delete Firebase user (idempotent, handles mid-way failure retries) -> delete SQLite user row with automatic FK cascades.
+  - Admin protection: Administrators cannot modify, disable, or delete other administrators or themselves.
+- Admin Farms: `GET /api/v1/admin/farms`, `POST /api/v1/admin/farms` (add farm on behalf of valid farmer), `DELETE /api/v1/admin/farms/:farmId`.
+- Security & Role Enforcement (SE-5): Every `/api/v1/admin/*` endpoint returns 403 Forbidden when accessed by a farmer.
+
+### 3. Files Created or Modified
+- **Backend:**
+  - `backend/src/repositories/dashboardRepository.js` (Created)
+  - `backend/src/repositories/userRepository.js` (Added `listFarmerUsers`, `countFarmers`)
+  - `backend/src/repositories/farmRepository.js` (Added `countFarms`, `countFarmsByFarmerId`)
+  - `backend/src/repositories/cropRepository.js` (Added `countCrops`, `countCropsByFarmerId`)
+  - `backend/src/repositories/financialRepository.js` (Added `countFinancialRecords`)
+  - `backend/src/validators/adminValidators.js` (Created)
+  - `backend/src/services/dashboardService.js` (Created)
+  - `backend/src/services/adminService.js` (Created)
+  - `backend/src/controllers/dashboardController.js` (Created)
+  - `backend/src/controllers/adminController.js` (Created)
+  - `backend/src/routes/dashboard.routes.js` (Created)
+  - `backend/src/routes/admin.routes.js` (Created)
+  - `backend/src/routes/index.js` (Mounted `/dashboard`, `/reports`, `/admin`)
+  - `backend/test/helpers/FakeAuthGateway.js` (Updated `setDisabled` to reset tokens on re-enabling)
+  - `backend/test/integration/dashboard.test.js` (Created)
+  - `backend/test/integration/admin.test.js` (Created)
+- **Frontend:**
+  - `frontend/src/features/dashboard/api.js` (Created)
+  - `frontend/src/features/dashboard/pages/FarmerDashboard.jsx` (Created)
+  - `frontend/src/features/reports/api.js` (Created)
+  - `frontend/src/features/reports/pages/Reports.jsx` (Created)
+  - `frontend/src/features/admin/api.js` (Created)
+  - `frontend/src/features/admin/pages/AdminDashboard.jsx` (Created)
+  - `frontend/src/features/admin/pages/FarmerAccounts.jsx` (Created)
+  - `frontend/src/features/admin/pages/FarmerAccountDetails.jsx` (Created)
+  - `frontend/src/features/admin/pages/AllReports.jsx` (Created)
+  - `frontend/src/app/router.jsx` (Wired all real dashboard, report, and admin pages)
+  - `frontend/src/test/dashboard.test.jsx` (Created)
+  - `frontend/src/test/admin.test.jsx` (Created)
+
+### 4. Tests and Validation
+- **Backend Tests:** 19 test files, 177 tests passed, 0 failed.
+- **Frontend Tests:** 11 test files, 64 tests passed, 0 failed.
+- **Total Passing Automated Tests:** 241 passed.
+- **Lint:** 0 errors, 0 warnings.
+
+### 5. Next Phase and Prerequisites
+- **Next Phase:** Phase 8 — Hardening, Non-Functional Verification and Local Packaging.
+- **Prerequisites:** Backup & restore jobs and scripts, security audit, documentation (README.md, docs/backup-restore.md, docs/api-examples.http, .env.example), full regression verification.

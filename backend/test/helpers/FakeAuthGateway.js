@@ -59,6 +59,9 @@ export class FakeAuthGateway extends AuthGateway {
     const user = this.users.get(uid);
     if (user) {
       user.disabled = disabled;
+      if (!disabled) {
+        user.tokensRevokedAt = 0;
+      }
     }
   }
 

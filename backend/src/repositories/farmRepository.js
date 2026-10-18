@@ -89,3 +89,15 @@ export async function deleteFarm(exec, farm_id) {
 export async function findFarmerByFarmerId(exec, farmer_id) {
   return exec.get(`SELECT * FROM farmers WHERE farmer_id = ?`, [farmer_id]);
 }
+
+// Requirement: D8, Administrator.manage_system
+export async function countFarms(exec) {
+  const row = await exec.get(`SELECT COUNT(*) as count FROM farms`);
+  return row ? Number(row.count) : 0;
+}
+
+// Requirement: D10, Farmer.view_dashboard
+export async function countFarmsByFarmerId(exec, farmer_id) {
+  const row = await exec.get(`SELECT COUNT(*) as count FROM farms WHERE farmer_id = ?`, [farmer_id]);
+  return row ? Number(row.count) : 0;
+}

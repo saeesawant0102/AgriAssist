@@ -218,3 +218,9 @@ export async function getFinancialTotals(exec, farmId, { startDate = null, endDa
     record_count: recordCount,
   };
 }
+
+// Requirement: D8, Administrator.manage_system
+export async function countFinancialRecords(exec) {
+  const row = await exec.get(`SELECT COUNT(*) as count FROM financial_records`);
+  return row ? Number(row.count) : 0;
+}
