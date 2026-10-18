@@ -357,11 +357,11 @@ describe('Irrigation Scheduling Integration (Feature 5)', () => {
   it('D18: scheduler prevents duplicate registration and manages active tasks', () => {
     stopScheduler();
     const tasks1 = startScheduler({ db, weatherService, clock });
-    expect(tasks1.length).toBe(1);
+    expect(tasks1.length).toBe(2);
 
     // Second call should return existing tasks without registering new ones
     const tasks2 = startScheduler({ db, weatherService, clock });
-    expect(tasks2.length).toBe(1);
+    expect(tasks2.length).toBe(2);
 
     stopScheduler();
   });

@@ -10,7 +10,10 @@
     "test:watch": "vitest",
     "test:auth-emulator": "vitest run --config vitest.emulator.config.js",
     "test:contract": "vitest run test/contract",
-    "seed:admin": "node scripts/seedAdmin.js"
+    "seed:admin": "node scripts/seedAdmin.js",
+    "db:backup": "node scripts/backupDb.js",
+    "db:restore": "node scripts/restoreDb.js",
+    "loadtest": "node test/perf/loadtest.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -24,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "autocannon": "^8.0.0",
     "eslint": "^9.21.0",
     "globals": "^15.15.0",
     "msw": "^2.7.3",

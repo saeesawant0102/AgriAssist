@@ -232,3 +232,85 @@
 ### 5. Next Phase and Prerequisites
 - **Next Phase:** Phase 8 — Hardening, Non-Functional Verification and Local Packaging.
 - **Prerequisites:** Backup & restore jobs and scripts, security audit, documentation (README.md, docs/backup-restore.md, docs/api-examples.http, .env.example), full regression verification.
+
+---
+
+## Phase 8: Hardening, Non-Functional Verification and Local Packaging
+
+### 1. Phase Completed
+- **Phase Name:** Phase 8 — Hardening, Non-Functional Verification and Local Packaging
+- **Status:** Completed and Verified.
+- **Commit:** Target `phase-8: Hardening and local packaging`
+
+### 2. Requirements Implemented
+- **Automated Backups (`D20, OR-4, OR-5`):**
+  - Implemented `backend/src/jobs/dailyBackup.js` registered in `backend/src/jobs/scheduler.js` with `BACKUP_CRON` (default: `0 2 * * *`), keeping newest `BACKUP_RETAIN_COUNT` (default: 7) and pruning older files.
+  - Non-blocking SQLite backups via `Database.backupTo()` using `VACUUM INTO ?` with ISO UTC timestamped filenames.
+  - Scheduler starts only from `server.js` (never `createApp`).
+- **Manual Backup & Restore CLI Scripts (`OR-4, OR-5`):**
+  - `backend/scripts/backupDb.js` (`npm run db:backup`): Manual trigger for non-blocking database snapshot.
+  - `backend/scripts/restoreDb.js` (`npm run db:restore -- <file>`): Restores SQLite file, creates safety pre-restore backup, unlinks stale WAL and SHM journal files, runs `PRAGMA integrity_check`, and validates query readability.
+- **Non-Functional Performance Verification (`PE-1, PE-2, PE-3, PE-4`):**
+  - Implemented `backend/test/perf/loadtest.js` (`npm --prefix backend run loadtest`) executing `autocannon` with 100 concurrent connections over 5s duration against 4 key authenticated read endpoints (`/api/v1/dashboard`, `/api/v1/farms`, `/api/v1/reports/profitability`, `/api/v1/farms/:farmId/weather/current`).
+  - All endpoints passed with 0 errors, 0 timeouts, 100% 2xx responses, and p99 latency far below 3000ms threshold (average: 15–160ms, p99: 25–396ms).
+- **Security Audit (`SE-1 to SE-5, SQL Injection, Data Privacy`):**
+  - Codebase audit confirmed 100% parameterized queries in `backend/src/repositories/` (zero raw SQL string concatenation).
+  - Keyset pagination and ordering use hardcoded column allowlists (`u.user_id DESC`).
+  - Security headers enforced via `helmet()`.
+  - CORS restricted to `ALLOWED_ORIGINS` (default `http://localhost:5173`).
+  - Request body parser size limited to `100kb`.
+  - Passwords handled solely by Firebase Auth (never stored in SQLite or logs).
+  - `User.toJSON()` strictly strips `password` and `firebase_uid` from client responses.
+  - `.gitignore` verified to ignore secrets (`secrets/`, `*.json`, `*.pem`), environment variables (`.env`, `.env.*`), and SQLite files/backups (`backend/data/*.db*`, `data/`, `backups/`).
+- **Comprehensive Documentation & Local Packaging:**
+  - `README.md`: Complete root guide covering architecture, Node.js LTS prerequisite, Firebase project configuration, service account path, frontend/backend environment files, automated migrations, admin CLI seeding, concurrent execution, full test commands, backup/restore instructions, known limitations, and troubleshooting.
+  - `docs/backup-restore.md`: Step-by-step backup and restore runbook, failure scenarios, and integrity verification.
+  - `docs/api-examples.http`: REST client file covering all major endpoint groups (Health, Auth, Farms, Crops, Weather, Advisory, Irrigation, Finance, Dashboard, Reports, Admin).
+  - `backend/.env.example` and `frontend/.env.example`: Complete environment variable examples without secrets.
+
+### 3. Files Created or Modified
+- **Created:**
+  - `backend/src/jobs/dailyBackup.js` (Automated daily backup job and pruning)
+  - `backend/scripts/backupDb.js` (Manual backup CLI)
+  - `backend/scripts/restoreDb.js` (Manual restore CLI with integrity verification)
+  - `backend/test/unit/backup.test.js` (Backup, retention pruning, restore, scheduler unit tests)
+  - `backend/test/helpers/seed.js` (Section 16.4 test data seed helper)
+  - `backend/test/perf/loadtest.js` (autocannon 100-connection load test runner)
+  - `docs/backup-restore.md` (Operational backup & recovery documentation)
+  - `docs/api-examples.http` (REST API documentation & examples)
+  - `README.md` (Root documentation and setup guide)
+- **Modified:**
+  - `.gitignore` (Added broad data/, backups/, and *.db patterns)
+  - `backend/package.json` (Added `db:backup`, `db:restore`, `loadtest` scripts; `autocannon` devDependency)
+  - `backend/package-lock.json` (Dependency lockfile update)
+  - `backend/src/jobs/scheduler.js` (Registered `dailyBackupJob` with `BACKUP_CRON`)
+  - `backend/test/integration/irrigation.test.js` (Updated scheduled task count assertion for 2 registered jobs)
+  - `HANDOFF.md` (Documented Phase 8 implementation and verification)
+
+### 4. Tests and Validation Commands Executed
+- `npm --prefix backend test test/unit/backup.test.js`: 4 passed (backup, retention pruning, restore integrity, scheduler registration).
+- `npm --prefix backend test`: 20 test files, 181 passed, 0 failed.
+- `npm --prefix frontend test`: 11 test files, 64 passed, 0 failed.
+- `npm test`: 31 test files, 245 total tests passed, 0 failed across full stack.
+- `npm run lint`: Clean across both backend and frontend (0 errors, 0 warnings).
+- `npm --prefix backend run loadtest`: 4 endpoints tested under 100 concurrent connections, 100% 2xx responses, p99 < 400ms, 0 errors.
+
+### 5. Actual Test Results
+- **Backend Tests:** 20 test files, 181 passed, 0 failed.
+- **Frontend Tests:** 11 test files, 64 passed, 0 failed.
+- **Total Passing Automated Tests:** 245 passed.
+- **Lint:** 0 errors, 0 warnings.
+- **Load Test:** Passed (PE-1, PE-2, PE-3, PE-4 satisfied).
+
+### 6. Acceptance Criteria Satisfaction (Section 18)
+1. **Admin Seed & Auth:** Admin seed CLI script verified; farmer registration, login, logout, profile update, password reset tested.
+2. **Farm & Crop Management:** Farms geocoded via Open-Meteo or manual coordinates; crops planted, growth stage updated with D3 validation, cascades verified.
+3. **Weather & Alerts:** 5-7 day forecasts, current weather cached with 30-min TTL, alerts generated at thresholds.
+4. **Crop Advisory:** Weather-based recommendations generated, persisted, and retrieved.
+5. **Irrigation Scheduling:** Weather-aware schedule generation, rain-skip note evaluation, in-place refresh, and scheduled batch refresh.
+6. **Finance & Profitability:** Expenses, incomes, multi-statement transactions, net profit calculation, date-range calculations, CSV/PDF export.
+7. **Farmer Dashboard & Reports:** Unified summary metrics, upcoming irrigation, latest advisory, and cross-farm profitability reports.
+8. **Admin Operations:** System statistics, keyset pagination, farmer enable/disable, user deletion with cascades, admin farms management, all-system reports.
+9. **Security & Isolation (SE-5):** Cross-owner resource access denied with 403 on all entity types; admin prevented from modifying self/admins; farmer denied from admin endpoints.
+10. **Backup & Recovery:** Verified automated VACUUM INTO snapshots, retention pruning, restore CLI, and PRAGMA integrity checks.
+

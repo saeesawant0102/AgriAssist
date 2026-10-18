@@ -1,0 +1,355 @@
+###
+# AgriAssist — REST API Examples
+# Usage: Open in VS Code / Antigravity with REST Client extension or run via curl/Postman.
+# Variables: Replace @farmerToken and @adminToken with valid Firebase ID tokens.
+###
+
+@baseUrl = http://localhost:4000/api/v1
+@farmerToken = eyJhbGciOiJSUzI1NiIsImtpZCI6Ii4uLiJ9...
+@adminToken = eyJhbGciOiJSUzI1NiIsImtpZCI6Ii4uLiJ9...
+@farmId = 1
+@cropId = 1
+@userId = 2
+@scheduleId = 1
+
+###############################################################################
+# 1. System Health
+###############################################################################
+
+### 1.1 Health Check (Public)
+GET {{baseUrl}}/health
+Accept: application/json
+
+###############################################################################
+# 2. Authentication & Profile Management (Feature 1)
+###############################################################################
+
+### 2.1 Register New Farmer
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Ramesh Patil",
+  "email": "ramesh.patil@example.com",
+  "password": "Password@123",
+  "phone": "9876543210",
+  "address": "Village Somatne, Taluka Maval, Pune"
+}
+
+### 2.2 Login (Exchange Firebase ID Token for Local User Profile)
+POST {{baseUrl}}/auth/login
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+### 2.3 Get Profile
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 2.4 Update Profile (Name, Phone, Address)
+PUT {{baseUrl}}/auth/profile
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "name": "Ramesh V. Patil",
+  "phone": "9876543211",
+  "address": "Post Somatne, Taluka Maval, District Pune"
+}
+
+### 2.5 Logout (Revoke Refresh Tokens)
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+###############################################################################
+# 3. Farm Management (Feature 2)
+###############################################################################
+
+### 3.1 Add Farm (Location Geocoded Automatically via Open-Meteo)
+POST {{baseUrl}}/farms
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "farm_name": "Sunrise Orchard",
+  "location": "Pune, Maharashtra",
+  "area": 4.5
+}
+
+### 3.2 Add Farm with Explicit Coordinates (Skip Upstream Geocoding)
+POST {{baseUrl}}/farms
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "farm_name": "Valley View Farm",
+  "location": "Maval Region",
+  "area": 6.2,
+  "latitude": 18.7512,
+  "longitude": 73.6823
+}
+
+### 3.3 List Farmer's Farms
+GET {{baseUrl}}/farms
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 3.4 Get Farm Details
+GET {{baseUrl}}/farms/{{farmId}}
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 3.5 Edit Farm
+PUT {{baseUrl}}/farms/{{farmId}}
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "farm_name": "Sunrise Organic Orchard",
+  "location": "Pune, Maharashtra",
+  "area": 5.0
+}
+
+### 3.6 Delete Farm
+DELETE {{baseUrl}}/farms/{{farmId}}
+Authorization: Bearer {{farmerToken}}
+
+###############################################################################
+# 4. Crop Management (Feature 3)
+###############################################################################
+
+### 4.1 Add Crop to Farm
+POST {{baseUrl}}/farms/{{farmId}}/crops
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "crop_name": "Wheat",
+  "variety": "Lokwan",
+  "sowing_date": "2026-10-01",
+  "harvest_date": "2027-02-15",
+  "growth_stage": "Vegetative"
+}
+
+### 4.2 List Crops on Farm
+GET {{baseUrl}}/farms/{{farmId}}/crops
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 4.3 Get Crop Details
+GET {{baseUrl}}/crops/{{cropId}}
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 4.4 Edit Crop
+PUT {{baseUrl}}/crops/{{cropId}}
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "crop_name": "Wheat",
+  "variety": "Sharbati",
+  "sowing_date": "2026-10-01",
+  "harvest_date": "2027-02-28",
+  "growth_stage": "Flowering"
+}
+
+### 4.5 Update Growth Stage (D3 Stage Allow-list)
+PATCH {{baseUrl}}/crops/{{cropId}}/stage
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "growth_stage": "Ripening"
+}
+
+### 4.6 Delete Crop
+DELETE {{baseUrl}}/crops/{{cropId}}
+Authorization: Bearer {{farmerToken}}
+
+###############################################################################
+# 5. Weather Dashboard and Alerts (Feature 4)
+###############################################################################
+
+### 5.1 Get Current Weather for Farm
+GET {{baseUrl}}/farms/{{farmId}}/weather/current
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 5.2 Get 5-7 Day Forecast (days=5, 6, or 7)
+GET {{baseUrl}}/farms/{{farmId}}/weather/forecast?days=7
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 5.3 Get Severe Weather Alerts
+GET {{baseUrl}}/farms/{{farmId}}/weather/alerts
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+###############################################################################
+# 6. Crop Advisory (Feature 4)
+###############################################################################
+
+### 6.1 Generate Weather-Based Crop Advisory
+POST {{baseUrl}}/crops/{{cropId}}/advisories
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+### 6.2 View Advisory History for Crop
+GET {{baseUrl}}/crops/{{cropId}}/advisories
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+###############################################################################
+# 7. Irrigation Scheduling (Feature 5)
+###############################################################################
+
+### 7.1 Generate Irrigation Schedule
+POST {{baseUrl}}/crops/{{cropId}}/irrigation-schedules
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+### 7.2 View Irrigation Schedules for Crop
+GET {{baseUrl}}/crops/{{cropId}}/irrigation-schedules
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 7.3 Refresh Irrigation Schedule In-Place
+POST {{baseUrl}}/irrigation-schedules/{{scheduleId}}/refresh
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+###############################################################################
+# 8. Financial Records and Profitability (Feature 6)
+###############################################################################
+
+### 8.1 Record Expense
+POST {{baseUrl}}/farms/{{farmId}}/expenses
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "amount": 2500.00,
+  "date": "2026-10-15",
+  "description": "Organic fertilizer and micronutrients"
+}
+
+### 8.2 Record Income
+POST {{baseUrl}}/farms/{{farmId}}/incomes
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "amount": 8000.00,
+  "date": "2026-10-18",
+  "description": "Early harvest vegetable sale"
+}
+
+### 8.3 List Financial Records (Filtered by Type & Date Range)
+GET {{baseUrl}}/farms/{{farmId}}/financial-records?type=Expense&start_date=2026-10-01&end_date=2026-10-31
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 8.4 Get Financial Export Dataset (JSON for CSV / PDF)
+GET {{baseUrl}}/farms/{{farmId}}/reports/financial?start_date=2026-10-01&end_date=2026-10-31
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 8.5 Calculate Date-Range Profitability
+POST {{baseUrl}}/farms/{{farmId}}/profitability/calculate
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "start_date": "2026-10-01",
+  "end_date": "2026-10-31"
+}
+
+### 8.6 View Profitability History
+GET {{baseUrl}}/farms/{{farmId}}/profitability
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+###############################################################################
+# 9. Farmer Dashboard & Reports (Feature 7)
+###############################################################################
+
+### 9.1 Farmer Unified Dashboard
+GET {{baseUrl}}/dashboard
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+### 9.2 Farmer Profitability Reports Across Farms
+GET {{baseUrl}}/reports/profitability
+Authorization: Bearer {{farmerToken}}
+Accept: application/json
+
+###############################################################################
+# 10. Administrator Functions (Feature 7)
+###############################################################################
+
+### 10.1 System Statistics
+GET {{baseUrl}}/admin/stats
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 10.2 Overall Profitability Across All Farms
+GET {{baseUrl}}/admin/reports
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 10.3 List Farmer Accounts (Keyset Pagination)
+GET {{baseUrl}}/admin/users?status=active&limit=10
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 10.4 Get Specific Farmer Account
+GET {{baseUrl}}/admin/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 10.5 Update Farmer Profile (Admin on Behalf)
+PUT {{baseUrl}}/admin/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Ramesh Patil Updated",
+  "phone": "9876543299",
+  "address": "Somatne Fata, Pune"
+}
+
+### 10.6 Enable or Disable Farmer Account
+PATCH {{baseUrl}}/admin/users/{{userId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "disabled"
+}
+
+### 10.7 Delete Farmer Account (Deletes Firebase User + Cascades Local Data)
+DELETE {{baseUrl}}/admin/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+
+### 10.8 List All System Farms (Admin)
+GET {{baseUrl}}/admin/farms
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### 10.9 Add Farm on Behalf of Farmer (Admin)
+POST {{baseUrl}}/admin/farms
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "farmer_id": 1,
+  "farm_name": "Admin Assigned North Farm",
+  "location": "Nashik, Maharashtra",
+  "area": 8.0
+}
+
+### 10.10 Delete Farm (Admin)
+DELETE {{baseUrl}}/admin/farms/{{farmId}}
+Authorization: Bearer {{adminToken}}

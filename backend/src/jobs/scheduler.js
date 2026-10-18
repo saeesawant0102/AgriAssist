@@ -1,13 +1,14 @@
 import cron from 'node-cron';
 import { env } from '../config/env.js';
 import { refreshIrrigationSchedulesJob } from './refreshIrrigationSchedules.js';
+import { dailyBackupJob } from './dailyBackup.js';
 
 let isInitialized = false;
 const activeTasks = [];
 
 /**
  * Initializes and starts all scheduled background jobs.
- * Requirement: D18, Section 11, Section 13.3 (9)
+ * Requirement: D18, D20, Section 11, Section 13.3 (9), Phase 8
  * Note: Must be called only once from server.js; never from createApp().
  * @param {Object} deps
  * @param {import('../db/connection.js').Database} deps.db
@@ -36,6 +37,23 @@ export function startScheduler(deps) {
     console.log(`[Scheduler] Registered irrigation refresh job with cron: ${irrigationCron}`);
   } else {
     console.error(`[Scheduler] Invalid cron expression for IRRIGATION_REFRESH_CRON: ${irrigationCron}`);
+  }
+
+  const backupCron = env.BACKUP_CRON || '0 2 * * *';
+  if (cron.validate(backupCron)) {
+    const task = cron.schedule(backupCron, async () => {
+      console.log('[Scheduler] Running scheduled daily backup job...');
+      try {
+        const result = await dailyBackupJob(deps);
+        console.log(`[Scheduler] Daily backup created at ${result.backupFilePath} (pruned ${result.prunedCount} old files).`);
+      } catch (err) {
+        console.error('[Scheduler] Error in scheduled daily backup job:', err);
+      }
+    });
+    activeTasks.push(task);
+    console.log(`[Scheduler] Registered daily backup job with cron: ${backupCron}`);
+  } else {
+    console.error(`[Scheduler] Invalid cron expression for BACKUP_CRON: ${backupCron}`);
   }
 
   isInitialized = true;
