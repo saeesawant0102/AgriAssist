@@ -8,6 +8,7 @@ import { CropService } from '../services/cropService.js';
 import { FarmService } from '../services/farmService.js';
 import { addCropSchema } from '../validators/cropValidators.js';
 import { addFarmSchema, updateFarmSchema } from '../validators/farmValidators.js';
+import { createFarmFinanceRouter } from './finance.routes.js';
 import { createWeatherRouter } from './weather.routes.js';
 
 /**
@@ -87,6 +88,9 @@ export function createFarmsRouter(deps) {
 
   // Weather routes: /api/v1/farms/:farmId/weather/*
   router.use('/:farmId/weather', createWeatherRouter(deps));
+
+  // Finance routes: /api/v1/farms/:farmId/* (expenses, incomes, financial-records, etc.)
+  router.use('/:farmId', createFarmFinanceRouter(deps));
 
   return router;
 }
